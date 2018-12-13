@@ -1,0 +1,6 @@
+GC-CR-7679-H00453_S3_2_bismark_se_merged_sorted.bam 788713 +
+
+GC-CR-7679-H00453_S3_1_bismark_se_merged_sorted.bam 3502218 +
+
+GC-CR-7679-H00453_S3_pe_merged_sorted.bam 44148734 +
+
