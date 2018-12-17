@@ -1,0 +1,11 @@
+python QMGC_main_v2.py -i /store/LevelFour/ARTISTIC/METHYLATION/RRBS/dio01/Data/QMGC_main_22/ -r /store/LevelFour/ARTISTIC/METHYLATION/RRBS/dio01/Results/QMGC_main_22/ -1 R1_001.fastq.gz -2 R2_001.fastq.gz -p 5
+python QMGC_main_v2.py -i /store/LevelFour/ARTISTIC/METHYLATION/RRBS/dio01/Data/QMGC_main_23/ -r /store/LevelFour/ARTISTIC/METHYLATION/RRBS/dio01/Results/QMGC_main_23/ -1 R1_001.fastq.gz -2 R2_001.fastq.gz -p 5
+python QMGC_main_v2.py -i /store/LevelFour/ARTISTIC/METHYLATION/RRBS/dio01/Data/QMGC_main_24/ -r /store/LevelFour/ARTISTIC/METHYLATION/RRBS/dio01/Results/QMGC_main_24/ -1 R1_001.fastq.gz -2 R2_001.fastq.gz -p 5
+python QMGC_main_v2.py -i /store/LevelFour/ARTISTIC/METHYLATION/RRBS/dio01/Data/QMGC_main_25/ -r /store/LevelFour/ARTISTIC/METHYLATION/RRBS/dio01/Results/QMGC_main_25/ -1 R1_001.fastq.gz -2 R2_001.fastq.gz -p 5
+python QMGC_main_v2.py -i /store/LevelFour/ARTISTIC/METHYLATION/RRBS/dio01/Data/QMGC_main_26/ -r /store/LevelFour/ARTISTIC/METHYLATION/RRBS/dio01/Results/QMGC_main_26/ -1 R1_001.fastq.gz -2 R2_001.fastq.gz -p 5
+python QMGC_main_v2.py -i /store/LevelFour/ARTISTIC/METHYLATION/RRBS/dio01/Data/QMGC_main_27/ -r /store/LevelFour/ARTISTIC/METHYLATION/RRBS/dio01/Results/QMGC_main_27/ -1 R1_001.fastq.gz -2 R2_001.fastq.gz -p 5
+python QMGC_main_v2.py -i /store/LevelFour/ARTISTIC/METHYLATION/RRBS/dio01/Data/QMGC_main_28/ -r /store/LevelFour/ARTISTIC/METHYLATION/RRBS/dio01/Results/QMGC_main_28/ -1 R1_001.fastq.gz -2 R2_001.fastq.gz -p 5
+python QMGC_main_v2.py -i /store/LevelFour/ARTISTIC/METHYLATION/RRBS/dio01/Data/QMGC_main_29/ -r /store/LevelFour/ARTISTIC/METHYLATION/RRBS/dio01/Results/QMGC_main_29/ -1 R1_001.fastq.gz -2 R2_001.fastq.gz -p 5
+python QMGC_main_v2.py -i /store/LevelFour/ARTISTIC/METHYLATION/RRBS/dio01/Data/QMGC_main_30/ -r /store/LevelFour/ARTISTIC/METHYLATION/RRBS/dio01/Results/QMGC_main_30/ -1 R1_001.fastq.gz -2 R2_001.fastq.gz -p 5
+python QMGC_main_v2.py -i /store/LevelFour/ARTISTIC/METHYLATION/RRBS/dio01/Data/QMGC_main_31/ -r /store/LevelFour/ARTISTIC/METHYLATION/RRBS/dio01/Results/QMGC_main_31/ -1 R1_001.fastq.gz -2 R2_001.fastq.gz -p 5
+python QMGC_main_v2.py -i /store/LevelFour/ARTISTIC/METHYLATION/RRBS/dio01/Data/QMGC_main_32/ -r /store/LevelFour/ARTISTIC/METHYLATION/RRBS/dio01/Results/QMGC_main_32/ -1 R1_001.fastq.gz -2 R2_001.fastq.gz -p 5
