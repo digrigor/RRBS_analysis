@@ -10,8 +10,8 @@ filter_out_samples <- function(metrics, master, metrics_col, condition){
     a <- metrics[,metrics_col]
     out_ind = which(condition(a))
     filtered_out_samples = metrics[out_ind,]$sample
-    out_master_matched_ids = unique(master[master$lab_no %in% filtered_out_samples,]$RRBS.Set_ID)
-    return(master[!master$RRBS.Set_ID %in% out_master_matched_ids,])
+    #out_master_matched_ids = unique(master[master$lab_no %in% filtered_out_samples,]$RRBS.Set_ID)
+    return(master[!master$lab_no %in% filtered_out_samples,])
 }
 
 #' Create a stranded GRange object of all the CpG sites of the hg19 human genome based on the BSgenome.Hsapiens.UCSC.hg19 package.
@@ -57,9 +57,10 @@ get_final_diff_matrix <- function(mydiffs=list()){
         ps_and_es[[i]] = cbind(mydiffs[[i]]$pvalue, mydiffs[[i]]$qvalue)
     }
     ps_and_es_matrix = do.call(cbind, ps_and_es)
-    conts = cases = means_cont = means_case = medians_cont = medians_case = meansdiff = mediansdiff = wcoxs = c()
+    conts = cases = means_cont = means_case = medians_cont = medians_case = meansdiff = mediansdiff = wcoxs = perms = c()
     z=1
     main_mydiff = getData(mydiffs[[1]])
+    #length(conts) = length(cases) = length(means_cont) = length(means_case) = length(medians_cont) = length(medians_case) = length(meansdiff) = length(mediansdiff) = length(wcoxs) = length(perms) = nrow(main_mydiff)
     for(i in as.numeric(rownames(main_mydiff))){
         cont_vals = as.numeric(na.omit(meth.min_5_per[i, c(which(treatment==0))]))
         case_vals = as.numeric(na.omit(meth.min_5_per[i, c(which(treatment==1))]))
@@ -73,13 +74,15 @@ get_final_diff_matrix <- function(mydiffs=list()){
         medians_case[z] = median(case_vals)
         meansdiff[z] = means_case[z] - means_cont[z]
         mediansdiff[z] = medians_case[z] - medians_cont[z]
-        wcoxs[z] = wilcox.test(cont_vals, case_vals)$p.value
-        vals = c(cont_vals, case_vals)
-        treats = as.factor(c(rep(0, length(cont_vals)), rep(1, length(case_vals))))
-        perm_fisher = oneway_test(vals ~ treats)
-        perms[z] = pvalue(perm_fisher)
+        #wcoxs[z] = wilcox.test(cont_vals, case_vals)$p.value
+        #vals = c(cont_vals, case_vals)
+        #treats = as.factor(c(rep(0, length(cont_vals)), rep(1, length(case_vals))))
+        #perm_fisher = oneway_test(vals ~ treats)
+        #perms[z] = pvalue(perm_fisher)
+        z=z+1
+        if(z%%100000==0){print(z)}
     }
         wcoxs = ifelse(is.nan(wcoxs), 1, wcoxs)
-        main_diff = cbind(main_mydiff[,c(1,2,3,4,7)], meansdiff, mediansdiff, conts, cases, means_cont, means_case, ps_and_es_matrix, wcoxs, wcoxs_q)
+        main_diff = cbind(main_mydiff[,c(1,2,3,4,7)], meansdiff, mediansdiff, conts, cases, means_cont, means_case, ps_and_es_matrix)
         return(main_diff)
         }
