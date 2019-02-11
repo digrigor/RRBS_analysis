@@ -172,6 +172,8 @@ def get_fastqc_command_from_dir(input_dir, fastqc_dir, fastqc_after_trim_result_
 #Run MultiQC on the fastqc output
 def get_multiqc_command(multiqc_dir, fastqc_result_dir, outname):
 	"""
+	Function that takes a list of directories containing fastq files as its input and creates
+    a linux command that runs FastQC on each of the fastq files in these directories.
 	:param multiqc_dir: String (Required). Full path of MultiQC software file.
 	:param fastqc_result_dir: String (Required). Full path of FastQC result directory.
 	:param outname: Name of the output file.
@@ -202,10 +204,12 @@ def get_trimgalore_command(file_R1, file_R2, trimgalore_dir, trimgalore_result_d
 
 def check_number_of_trimmed(main_dir, trimgalore_result_dir):
     """
-    QC function to check if all the raw fastq files have been trimmed
+    Function that takes a the strings of path directories as its input and creates
+    anc checks if the number of raw fastq files is the same as the number of trimmed
+    fastq files and prints the outcome of the checking.
     :param main_dir: String (Required). The main directory of the analysis where the raw fastq files are.
     Should always finish with an '/'
-    :param trimgalore_result_dir: String (Required). ull path of trimming result directory.
+    :param trimgalore_result_dir: String (Required). full path of trimming result directory.
     Should always finish with an '/'
     """
     mains = get_files_with_suffix(main_dir, suffix2='.fastq.gz', mindepth=True)
@@ -216,6 +220,12 @@ def check_number_of_trimmed(main_dir, trimgalore_result_dir):
         print("Trimgalore output files are OK!")
 
 def usable_reads(trimgalore_result_dir):
+    """Function that takes the path of trimgalore results directory, searches all the trimming reports there
+    and create a list of linux command which add the number of usable reads of each sample in the end of each report.
+    :param trimgalore_result_dir: String (Required). full path of trimming result directory.
+    Should always finish with an '/'
+    :return: List of linux commands to perform the usable reads counting and reporting.
+    """
     command = []
     reports = get_files_with_suffix(dir=trimgalore_result_dir, suffix2='trimming_report.txt')
     for rep in reports:
@@ -229,6 +239,9 @@ def usable_reads(trimgalore_result_dir):
 def get_merge_unpaired_command(unpaired_trimgalore, unpaired_bismark, suffix_trim, suffix_bis, split_str, output_dir,
                                suffix_out):
     """
+    Function that take specific software and directories paths and an output suffix as its input and returns
+    a list of linux commands that concatenate the single-end fastq files which did not align in a paired-end
+    mode with the fastq files of the same sample which were left unpaired after the trimming procedure.
     :param unpaired_trimgalore: String (Required). The directory where the trimgalore! unpaired fastq files are.
     :param unpaired_bismark: String (Required). The directory where the pe alignment unpmapped fastq files are.
     :param suffix_trim: String (Required). Suffix of the trimgalore! unpaired fastq files.
@@ -258,6 +271,9 @@ def get_merge_unpaired_command(unpaired_trimgalore, unpaired_bismark, suffix_tri
 
 def get_bismark_commands_pe(bismark_dir, bowtie2_dir, bowtie2_ref, samtools_dir, input_dir, temp_dir, suffix_r1, suffix_r2, aligned_pe_dir):
     """
+    Function that take specific software and directories paths and an output suffix as its input and returns
+    a list of linux commands to perform paired-end Bismark alignment with bowtie2 in directional model
+    using the bismark parameters: --multicore 4 --gzip --unmapped for each pair of fastq files.
     :param bismark_dir: String (Required). Full path of Bismark software file.
     :param bowtie2_dir: String (Required). Full path of Bowtie2 software file.
     :param bowtie2_ref: String (Required). Full path of Bowtie2 bisuplhite converted reference genome.
@@ -286,8 +302,24 @@ def get_bismark_commands_pe(bismark_dir, bowtie2_dir, bowtie2_ref, samtools_dir,
     return command
 
 
-def get_bismark_commands_se(bismark_dir, bowtie2_dir, bowtie2_ref, samtools_dir, merged_unpaired_all,
+def get_bismark_commands_se(bismark_dir, bowtie2_dir, bowtie2_ref, samtools_dir, input_dir,
                                         suffix_r, aligned_se_dir, mode=''):
+    """
+    Function that take specific software and directories paths and an output suffix as its input and returns
+    a list of linux commands to perform single-end Bismark alignment with bowtie2 using the bismark parameters: --multicore 4
+    --gzip --unmapped for each pair of fastq files.
+    :param bismark_dir: String (Required). Full path of Bismark software file.
+    :param bowtie2_dir: String (Required). Full path of Bowtie2 software file.
+    :param bowtie2_ref: String (Required). Full path of Bowtie2 bisuplhite converted reference genome.
+    :param samtools_dir: String (Required). Full path of Samtools software file. Should always finish with an '/'
+    :param input_dir: String (Required). The directory where the fastq files which are going to be aligned are. Should always finish with an '/'.
+    :param temp_dir: String (Optional). Temporary directory for bismark.
+    :param suffix_r1: String (Required). Suffix of the fastq files.
+    :param aligned_se_dir: Directory where the alignment output will be stored.
+    :param mode: String (Required). Can be either '--pbat' or ''. If --pbat the aligment will run in pbat mode.
+    If '' the alignment will run in directional mode.
+    :return: List of linux commands to perform PE alignment on each of the input read-pairs fastq files.
+    """
     if mode=='' or mode=='--directional':
         mode=''
         gzip = ' --gzip'
@@ -295,7 +327,7 @@ def get_bismark_commands_se(bismark_dir, bowtie2_dir, bowtie2_ref, samtools_dir,
         mode='--pbat'
         gzip = ''
     command = []
-    file_R1 = get_files_with_suffix(merged_unpaired_all, suffix2=suffix_r)
+    file_R1 = get_files_with_suffix(input_dir, suffix2=suffix_r)
     for i in range(0, len(file_R1)):
         a = bismark_dir +' '+mode+' --multicore 4 --path_to_bowtie ' + bowtie2_dir + ' --samtools_path ' + samtools_dir + \
             gzip+' --unmapped --output_dir ' + aligned_se_dir + ' --genome_folder ' + bowtie2_ref + ' ' + \
@@ -304,6 +336,14 @@ def get_bismark_commands_se(bismark_dir, bowtie2_dir, bowtie2_ref, samtools_dir,
     return command
 
 def get_del_commands(path, suffixd_1='', suffixd_2=''):
+    """Function that takes apecific directory path, a prefix and a suffix and returns a list of linux commands
+    that delete the files in the given directory which names that start with this prefix and end with this suffix
+    :param suffixd_1: String (Optional). The prefix you want the files of the dir to START with.
+    Default is None: the function will not look for files starting with a particular prefix.
+    :param suffixd_1: String (Optional). The suffix you want the files of the dir to END with.
+    Default is None: the function will not look for files ending with a particular suffix.
+    :return: List of linux commands to delete each file in the given directory with the given suffices.
+    """
     command = []
     file_R1=get_files_with_suffix(path, suffix1=suffixd_1, suffix2=suffixd_2)
     command = ['rm '+x for x in file_R1]
@@ -311,6 +351,19 @@ def get_del_commands(path, suffixd_1='', suffixd_2=''):
 
 ########################################################################################
 def get_merging_bam_lanes_command(samtools_func, aligned_dir, merged_dir, unique_sample_names, read, mode='se'):
+    """
+    Function that take specific software and directories paths and the required mode as its input and returns
+    a list of linux commands to merge the bam files of different lanes of the same samples. Paired-end BAM files
+    will be merged together in a different file than Read1 Single-end BAM files which will be merged together
+    in a different file than Read2 Single-end BAM files which will be merged together.
+    :param samtools_func: String (Required). Full path of Samtools software file.
+    :param aligned_dir: String (Required). Full path of the directory where the aligned files are located. Should always finish with an '/'.
+    :param merged_dir: String (Required). Full path of the directory where the merged aligned files will be stored. Should always finish with an '/'.
+    :param unique_sample_names: List (Required). List of unique names of the samples of the analysis.
+    :param read: String (Required). The sub-string inside the input alignment files which separates the R1 files from the R2 files. Example read='1_bismark' or read='2_bismark'. Leave read='' for merging paired-end files.
+    :param mode: String (Required). 'se' if merging single-end alignment files, 'pe' if mergine paired-end alignment files.
+    :return: List of linux commands to merge the input alignment bam files.
+    """
     commands = []
     space = ' '
     if read != '': read2 = '_' + read + '_'
@@ -326,6 +379,15 @@ def get_merging_bam_lanes_command(samtools_func, aligned_dir, merged_dir, unique
     return commands
 
 def merging_lanes_qc(unique_sample_names, unmerged_dir, merged_dir, read_un, read_me, perc_diff=0.005):
+    """Function that takes specific directories path and some parameters, checks if the lanes merging performed correctly by comparing the bam files sizes before and after the merging and prints the result of the QC.
+    :param unique_sample_names: List (Required). List of unique names of the samples of the analysis.
+    :param unmerged_dir: String (Required). Full path of the directory where the unmerged alignment files are located. Should always finish with an '/'.
+    :param merged_dir: String (Required). Full path of the directory where the merged alignment files are located. Should always finish with an '/'.
+    :param read_un: String (Required). The sub-string inside the input unmerged alignment files which separates the R1 files from the R2 files. Example read='1_bismark' or read='2_bismark'. Leave read='' for merging paired-end files.
+    :param read_me: String (Required). The sub-string inside the input merged alignment files which separates the R1 files from the R2 files. Example read='1_bismark' or read='2_bismark'. Leave read='' for merging paired-end files.
+    :param perc_diff: float (Required). 0 to 1 number representing the maximum tolerated file size differences between before and after merging.
+    :return: Prints a message indicating whether the merging of the BAM files of different lanes went OK or not.
+    """
     for i in range(0, len(unique_sample_names)):
         sample_un = get_files_with_suffix(dir=unmerged_dir, suffix1=unique_sample_names[i], inside_word=read_un, suffix2='.bam')
         sample_me = get_files_with_suffix(dir=merged_dir, suffix1=unique_sample_names[i], inside_word=read_me, suffix2='.bam')
@@ -333,36 +395,40 @@ def merging_lanes_qc(unique_sample_names, unmerged_dir, merged_dir, read_un, rea
         siz = [os.path.getsize(x) for x in samples]
         qc = sum(siz[0:-1]) in range(int(siz[-1]-perc_diff*siz[-1]),int((siz[-1]+perc_diff*siz[-1])))
         if qc==True:
-            print('Ok!')
+            print('Lanes merging QC: Ok!')
         else: raise Exception('Error in bam lanes merging! Problem with sample '+unique_sample_names[i]+' '+read_me)
 
-def get_sorting_command_pe_se(samtools_func, merged_se_dir, merged_pe_dir, sorted_dir):
+def get_sorting_command_pe_se(samtools_func, merged_se_dir, merged_pe_dir, sorted_dir, cpus=4):
+    """
+    Function that take specific software and directories paths as its input and returns
+    a list of linux commands to sort the bam files of different lanes of the same samples.
+    :param samtools_func: String (Required). Full path of Samtools software file.
+    :param merged_se_dir: String (Required). Full path of the directory where the single-end merged alignment files are located. Should always finish with an '/'.
+    :param merged_pe_dir: String (Required). Full path of the directory where the paired-end merged alignment files are located. Should always finish with an '/'.
+    :param sorted_dir: String (Required). Full path of the directory where the sorted merged alignment files will be stored. Should always finish with an '/'.
+    :param cpus: Int (Required). How many cores will be used for the sorting process.
+    :return: List of linux commands to sort the input alignment bam files.
+    """
     files1 = get_files_with_suffix(merged_se_dir, suffix2='.bam')
     files2 = get_files_with_suffix(merged_pe_dir, suffix2='.bam')
     files=files1+files2
     commands = []
     for i in range(0, len(files)):
-        comm = samtools_func + ' sort -n --threads 4 ' + files[i] + ' -o ' + \
+        comm = samtools_func + ' sort -n --threads '+cpus+' '+ files[i] + ' -o ' + \
                sorted_dir+os.path.basename(files[i])[0:-4] + "_sorted.bam"
         commands.append(comm)
     return commands
 
-
-def get_indexing_command_pe_se(samtools_func, sorted_dir):
-    files = []
-    for file in os.listdir(sorted_dir):
-        if file.endswith("cram"):
-            files.append(file)
-
-    commands = []
-    for i in range(0, len(files)):
-        comm = samtools_func + ' index ' + sorted_dir + files[i]
-        commands.append(comm)
-
-    return commands
-
-
 def get_mExtraction(bismark_methCall_func, samtools_dir, sorted_dir, meth_dir):
+    """
+    Function that take specific software and directories paths as its input and returns
+    a list of linux commands to perform the methylation calling for each sorted and merged aligned file.
+    :param bismark_methCall_func: String (Required). Full path of bismark_methylation_extractor software file.
+    :param samtools_dir: String (Required). Full path of Samtools software file.
+    :param sorted_dir: String (Required). Full path of the directory where the sorted-merged alignment files are located. Should always finish with an '/'.
+    :param meth_dir: String (Required). Full path of the directory where the methylation calling files will be stored. Should always finish with an '/'.
+    :return: List of linux commands to perform the methylation calling on the input aligment files.
+    """
     commands = []
     files = get_files_with_suffix(sorted_dir, suffix2='.bam')
     for i in range(0, len(files)):
@@ -374,6 +440,18 @@ def get_mExtraction(bismark_methCall_func, samtools_dir, sorted_dir, meth_dir):
     return commands
 
 def get_b2bgraph_command(sample_names, bismark_b2bgraph_func, meth_dir, bedgraph_dir, mode='CpG'):
+    """
+    Function that take specific software and directories paths as its input and returns
+    a list of linux commands to merge the methylation calling for each sample (each sample has three final methylation
+    calling files: One for Read1 SE aligment, one for Read2 SE aligment and one for the PE aligment) and write them in a bedgraph
+    file for each sample using the bismark2bedGraph function with parameters --counts --buffer_size 6G.
+    :param sample_names: List (Required). List of unique names of the samples of the analysis.
+    :param bismark_b2bgraph_func: String (Required). Full path of bismark2bedGraph software file.
+    :param meth_dir: String (Required). Full path of the directory where the methylation calling files are located. Should always finish with an '/'.
+    :param bedgraph_dir: String (Required). Full path of the directory where the bedgraph files will be stored. Should always finish with an '/'.
+    :param mode: String (Required). 'CpG' to get CpG context calls. Everything elee will enable the --CX option of the bismark2bedGraph software.
+    :return: List of linux commands to perform the merging and conversion of methylation calls to a bedgraph output.
+    """
     commands = []
     for name in sample_names:
         files = get_files_with_suffix(meth_dir, suffix1=mode, suffix2='txt.gz', inside_word=name)
@@ -385,6 +463,14 @@ def get_b2bgraph_command(sample_names, bismark_b2bgraph_func, meth_dir, bedgraph
     return (commands)
 
 def get_cov2cyt_command(bismark_cov2cyt_func, bowtie2_ref, bedgraph_dir):
+    """
+    Function that take specific software and directories paths as its input and returns
+    a list of linux commands to convert bedgraph files to cytosine-wide reports for each sample.
+    :param bismark_cov2cyt_func: String (Required). Full path of bismark2bedGraph software file.
+    :param bowtie2_ref: String (Required). Full path of Bowtie2 bisuplhite converted reference genome.
+    :param bedgraph_dir: String (Required). Full path of the directory where the bedgraph files are located. Should always finish with an '/'.
+    :return: List of linux commands to perform the conversion of the bedgraph file to a cytosine-wide file for each sample.
+    """
     commands=[]
     files=get_files_with_suffix(bedgraph_dir, suffix2='.bismark.cov.gz')
     for i in range(0,len(files)):
@@ -394,6 +480,14 @@ def get_cov2cyt_command(bismark_cov2cyt_func, bowtie2_ref, bedgraph_dir):
     return(commands)
 
 def get_aligned_counts_command(samtools_func, sorted_dir):
+    """
+    Function that take specific software and directories paths as its input and returns
+    a list of linux commands that count how many aligned reads there are in the alignment files of the given directory.
+    :param bismark_cov2cyt_func: String (Required). Full path of bismark2bedGraph software file.
+    :param bowtie2_ref: String (Required). Full path of Bowtie2 bisuplhite converted reference genome.
+    :param bedgraph_dir: String (Required). Full path of the directory where the bedgraph files are located. Should always finish with an '/'.
+    :return: List of linux commands to perform the conversion of the bedgraph file to a cytosine-wide file for each sample.
+    """
     files=get_files_with_suffix(sorted_dir, suffix2='.bam')
     commands = ['A=$('+samtools_func+' flagstat -@ 2 '+x+" | head -n 1 | cut -d'+' -f1); " \
                 "B=$(basename "+os.path.basename(x)+"); echo $B $A+'\n' >> "+sorted_dir+"count_aligned_reads_QC.txt" for x in files]

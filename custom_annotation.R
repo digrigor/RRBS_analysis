@@ -123,6 +123,7 @@ annots <- append(annots, 'hg19_Hmec-chromatin')
 annots <- append(annots, annotatr_cache$list_env())
 annots <- annots[-17]
 annots <- annots[-c(8,9)]
+ucsc_to_hgnc = read.csv('~/Methyl_Annotations/ucsc_gene_id_to_symbol.txt', sep='\t', row.names=1)
 
 annotations = build_annotations(genome = 'hg19', annotations = annots)
 

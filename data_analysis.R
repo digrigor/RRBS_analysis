@@ -1,10 +1,12 @@
 library(methylKit)
-library(doParallel)
-registerDoParallel(10)
+library(doMC)
+registerDoMC(30)
 library(randomForest)
 library(mlbench)
 library(caret)
 source("data_analysis_functions.R")
+
+ucsc_to_hgnc = read.csv('~/Methyl_Annotations/ucsc_gene_id_to_symbol.txt', sep='\t', row.names=1)
 
 master_csv = "../../Input/Masterfile_16.01.2019.csv"
 master = read.csv(master_csv)
