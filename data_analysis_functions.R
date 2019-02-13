@@ -108,8 +108,6 @@ regions_from_cpgs = function(maindiff_df, dmr_table, size, sample_lim, pval, eff
     diff_win_gr <- makeGRangesFromDataFrame(diff_win_df, keep.extra.columns = TRUE)
     red_diff_win_gr <- reduce(diff_win_gr, ignore.strand=TRUE)
     red_diff_win_gr_df = as.data.frame(red_diff_win_gr)
-    return(nrow(red_diff_win_gr_df))
-    }
     red_diff_win_gr_df$id = paste0(red_diff_win_gr_df$seqnames, red_diff_win_gr_df$start, red_diff_win_gr_df$end)
     filtered.myobj_win <- regionCounts(filtered.myobj_5, red_diff_win_gr, strand.aware=FALSE)
     meth_win <<- unite(filtered.myobj_win,min.per.group=20L)
@@ -274,15 +272,15 @@ feature_selection = function(diff_regs, starting_point, shared_samples_limit, ca
     }
     return(outlist)
 }
-fin_report = feature_selection(diff_regs, starting_point=st, shared_samples_limit=170)
+#fin_report = feature_selection(diff_regs, starting_point=st, shared_samples_limit=170)
 
-fin_list = list()
- for(i in c(1:nrow(all_combs))){
-     print(paste0('Starting point: ',all_combs[i,1]))
-     print('Minimum shared: 170')
-     print(paste0('Close range: ', all_combs[i,2]))
-     fin_list[[i]]=c(feature_selection(diff_regs, starting_point=as.character(all_combs[i,1]), shared_samples_limit=170, cand_shared_range=as.numeric(all_combs[i,2])))
- }
+# fin_list = list()
+#  for(i in c(1:nrow(all_combs))){
+#      print(paste0('Starting point: ',all_combs[i,1]))
+#      print('Minimum shared: 170')
+#      print(paste0('Close range: ', all_combs[i,2]))
+#      fin_list[[i]]=c(feature_selection(diff_regs, starting_point=as.character(all_combs[i,1]), shared_samples_limit=170, cand_shared_range=as.numeric(all_combs[i,2])))
+#  }
 
 evaluate_clusters <- function(final_list, meth_win_per, pheno_matrix, age_matrix){
     fin = data.frame(matrix(unlist(lapply(final_list, function(x) x[-c(1,2)])), ncol=4, byrow=TRUE), stringsAsFactors=FALSE)
@@ -294,7 +292,7 @@ evaluate_clusters <- function(final_list, meth_win_per, pheno_matrix, age_matrix
     colnames(fin_df) = c("ids", "sample_size", "no_of_features", "Accuracy", "Acc_low", "Acc_high", "Sensitivity", "Sens_low", "Sens_high", "Specificity", "Spec low", "Spec high", "PPV", "PPV_low", "PPV_high")
     return(fin_df)
 }
-best_clusters = evaluate_clusters(fin_list, meth_win_per, pheno_matrix, age_matrix)
+#best_clusters = evaluate_clusters(fin_list, meth_win_per, pheno_matrix, age_matrix)
 # }
 # mat = c()
 # for(i in length(fin_list)){
@@ -648,3 +646,26 @@ go_barplot <- function(topgo, path, name, test, mars, wi, he, cen, cela, cele, l
 	}
 
 	} #End of function
+
+check_raw_data <- function(lab_nos=as.character(globalmaster$lab_no), paths=globalmaster$path, chr, start, end){
+    raw_meths=c()
+    for(i in c(1:length(paths))){
+        p = paths[i]
+        #print(p)
+        raw_vals = fread(p, sep='\t', header=FALSE)
+        raw_spec = subset(raw_vals, V1==chr & V2==start & V2==end)
+        #rm(p)
+        if(nrow(raw_spec)==0){
+            raw_meth=NA
+        } else {
+            if(as.numeric(raw_spec$V4)+as.numeric(raw_spec$V5)<=9){
+                raw_meth=NA
+            } else {
+            raw_meth = (raw_spec$V4/(raw_spec$V5+raw_spec$V4))*100
+            }
+        }
+        raw_meths[i]=raw_meth
+    }
+    names(raw_meths) = lab_nos
+    return(rbind(raw_meths, meth.min_5_per[paste0(chr,start),names(raw_meths)]))
+}

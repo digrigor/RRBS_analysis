@@ -1,6 +1,6 @@
 library(methylKit)
-library(doMC)
-registerDoMC(30)
+#library(doMC)
+#registerDoMC(30)
 library(randomForest)
 library(mlbench)
 library(caret)

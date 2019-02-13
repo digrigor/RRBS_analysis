@@ -416,7 +416,7 @@ def get_sorting_command_pe_se(samtools_func, merged_se_dir, merged_pe_dir, sorte
     for i in range(0, len(files)):
         comm = samtools_func + ' sort -n --threads '+cpus+' '+ files[i] + ' -o ' + \
                sorted_dir+os.path.basename(files[i])[0:-4] + "_sorted.bam"
-        commands.append(comm)
+        commands.append(comm)p
     return commands
 
 def get_mExtraction(bismark_methCall_func, samtools_dir, sorted_dir, meth_dir):
