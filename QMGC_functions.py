@@ -55,7 +55,7 @@ def parallel_command(command, n=2, wordir=os.getcwd()+'/', name='log.txt'):
     :param command: List (Required). List of Linux commands that will be running.
     :param n: Integer (Optional). Number of processors will be used. Default to 2.
     :param wordir: String (Optional). Full pathname of the place where the log file will be saved to. Default
-    to the current working directory
+    to the current working directory. Should always finish with an '/'.
     :param name: String (Optional). Name of the output log file. Default to log.txt
     """
     processes = set()
@@ -141,7 +141,7 @@ def get_fastqc_command_from_list(file_R1, fastqc_dir, fastqc_before_trim_result_
     Function that takes a list of fastq files filenames as its input and creates a linux command that runs FastQC
     on each of the fastq files.
     :param file_R1: List (Required). List of fastq files full pathnames.
-    :param fastqc_dir: String (Required). Full path of FastQC software file.
+    :param fastqc_dir: String (Required). Full path of FastQC software file. Should always finish with an '/'.
     :param fastqc_before_trim_result_dir: String (Required). Full path of FastQC result directory.
     :return: List of commands to perform FastQC.
     """
@@ -157,7 +157,7 @@ def get_fastqc_command_from_dir(input_dir, fastqc_dir, fastqc_after_trim_result_
     Function that takes a list of directories containing fastq files as its input and creates
     a linux command that runs FastQC on each of the fastq files in these directories.
     :param input_dir: String (Required). Fullpath of the directories containing the fastq files.
-    :param fastqc_dir: String (Required). Full path of FastQC software file.
+    :param fastqc_dir: String (Required). Full path of FastQC software file. Should always finish with an '/'.
     :param fastqc_after_trim_result_dir: String (Required). Full path of FastQC result directory.
     :param fqsuffix: String (Required). The suffix you want the files of the dir to END with.
     :return: List of linux commands to perform FastQC on each of the input fastq files.
@@ -174,7 +174,7 @@ def get_multiqc_command(multiqc_dir, fastqc_result_dir, outname):
 	"""
 	Function that takes a list of directories containing fastq files as its input and creates
     a linux command that runs FastQC on each of the fastq files in these directories.
-	:param multiqc_dir: String (Required). Full path of MultiQC software file.
+	:param multiqc_dir: String (Required). Full path of MultiQC software file. Should always finish with an '/'.
 	:param fastqc_result_dir: String (Required). Full path of FastQC result directory.
 	:param outname: Name of the output file.
 	:return: List of linux commands to perform multiqc on the found fastqc reports.
@@ -191,8 +191,8 @@ def get_trimgalore_command(file_R1, file_R2, trimgalore_dir, trimgalore_result_d
     trimming on them.
     :param file_R1: List (Required). List of R1 fastq files full pathnames.
     :param file_R2: List (Required). List of R2 fastq files full pathnames.
-    :param trimgalore_dir: String (Required). Full path of Trimgalore! software file.
-    :param trimgalore_result_dir: String (Required). Full path of trimming result directory.
+    :param trimgalore_dir: String (Required). Full path of Trimgalore! software file. Should always finish with an '/'.
+    :param trimgalore_result_dir: String (Required). Full path of trimming result directory. Should always finish with an '/'.
     :return: List of linux commands to perform trimming on each of the input read pairs fastq files.
     """
     command = []
@@ -242,12 +242,12 @@ def get_merge_unpaired_command(unpaired_trimgalore, unpaired_bismark, suffix_tri
     Function that take specific software and directories paths and an output suffix as its input and returns
     a list of linux commands that concatenate the single-end fastq files which did not align in a paired-end
     mode with the fastq files of the same sample which were left unpaired after the trimming procedure.
-    :param unpaired_trimgalore: String (Required). The directory where the trimgalore! unpaired fastq files are.
-    :param unpaired_bismark: String (Required). The directory where the pe alignment unpmapped fastq files are.
+    :param unpaired_trimgalore: String (Required). The directory where the trimgalore! unpaired fastq files are. Should always finish with an '/'.
+    :param unpaired_bismark: String (Required). The directory where the pe alignment unpmapped fastq files are. Should always finish with an '/'.
     :param suffix_trim: String (Required). Suffix of the trimgalore! unpaired fastq files.
     :param suffix_bis: String (Required). Suffix of the pe alignment unmapped fastq files.
     :param split_str: String (Required). Separator between unique_sample_name and suffices in the names of the input files.
-    :param output_dir: String (Required). The directory where the output will be written.
+    :param output_dir: String (Required). The directory where the output will be written. Should always finish with an '/'.
     :param suffix_out: String (Required). The suffix of the output files.
     :return: List of linux commands to concatenate each pair of the input fastq files.
     """
@@ -274,16 +274,16 @@ def get_bismark_commands_pe(bismark_dir, bowtie2_dir, bowtie2_ref, samtools_dir,
     Function that take specific software and directories paths and an output suffix as its input and returns
     a list of linux commands to perform paired-end Bismark alignment with bowtie2 in directional model
     using the bismark parameters: --multicore 4 --gzip --unmapped for each pair of fastq files.
-    :param bismark_dir: String (Required). Full path of Bismark software file.
-    :param bowtie2_dir: String (Required). Full path of Bowtie2 software file.
+    :param bismark_dir: String (Required). Full path of Bismark software file. Should always finish with an '/'.
+    :param bowtie2_dir: String (Required). Full path of Bowtie2 software file. Should always finish with an '/'.
     :param bowtie2_ref: String (Required). Full path of Bowtie2 bisuplhite converted reference genome.
-    :param samtools_dir: String (Required). Full path of Samtools software file.
+    :param samtools_dir: String (Required). Full path of Samtools software file. Should always finish with an '/'.
     :param input_dir: String (Required). The directory where the fastq files which are going to be aligned are.
     Should always finish with an '/'
-    :param temp_dir: String (Optional). Temporary directory for bismark.
+    :param temp_dir: String (Optional). Temporary directory for bismark. Should always finish with an '/'.
     :param suffix_r1: String (Required). Suffix of the R1 files.
     :param suffix_r2: String (Required). Suffix of the R2 files
-    :param aligned_pe_dir: Directory where the alignment output will be stored.
+    :param aligned_pe_dir: Directory where the alignment output will be stored. Should always finish with an '/'
     :return: List of linux commands to perform PE alignment on each of the input read-pairs fastq files.
     """
     command = []
@@ -315,7 +315,7 @@ def get_bismark_commands_se(bismark_dir, bowtie2_dir, bowtie2_ref, samtools_dir,
     :param input_dir: String (Required). The directory where the fastq files which are going to be aligned are. Should always finish with an '/'.
     :param temp_dir: String (Optional). Temporary directory for bismark.
     :param suffix_r1: String (Required). Suffix of the fastq files.
-    :param aligned_se_dir: Directory where the alignment output will be stored.
+    :param aligned_se_dir: Directory where the alignment output will be stored. Should always finish with an '/'.
     :param mode: String (Required). Can be either '--pbat' or ''. If --pbat the aligment will run in pbat mode.
     If '' the alignment will run in directional mode.
     :return: List of linux commands to perform PE alignment on each of the input read-pairs fastq files.
@@ -494,17 +494,50 @@ def get_aligned_counts_command(samtools_func, sorted_dir):
     return(commands)
 
 def get_bam2cram_command(samtools_func, bowtie2_ref, sorted_dir):
+    """
+    Function that take specific software and directories paths as its input and returns
+    a list of linux commands that create cram files for each identified bam file in the given directory..
+    :param samtools_func: String (Required). Full path of Samtools software file.
+    :param bowtie2_ref: String (Required). Full path of Bowtie2 bisuplhite converted reference genome.
+    :param sorted_dir: String (Required). Full path of the directory where the bam files are located. Should always finish with an '/'.
+    :return: List of linux commands to perform the conversion of the bam files to cram.
+    """
     files=get_files_with_suffix(sorted_dir, suffix2='.bam')
     commands = [samtools_func + ' view -@2 -T '+bowtie2_ref+' -C -o '+sorted_dir+os.path.basename(x).split('.bam')[0]+'.cram '+x for x in files]
     return(commands)
 
 def get_final_report_command(bedgraph_dir):
+    """
+    Function that take a directory with cytosine-wide coverage paths as its input and returns
+    a list of linux commands that create a new cpg coverage file for each located file
+    containing only Cs covered by at least one read.
+    :param bedgraph_dir: String (Required). Full path of the directory where the bedgraph files are located. Should always finish with an '/'.
+    :return: List of linux commands to perform the creation of new files.
+    """
     files=get_files_with_suffix(bedgraph_dir, suffix2='.CpG_report.txt.gz')
+
     commands = ["gzip -dc "+x+" |  awk '{if ( ($4 + $5) > 0) {print} }' | gzip > "+bedgraph_dir+os.path.basename(x).split('.CpG_report.txt.gz')[0]+'.CpG_report_v2.txt.gz' for x in files]
     return(commands)
 
 
 def final_report(unique_sample_names, all_rs, main_result_dir, sorted_dir, aligned_pe_dir, aligned_se_dir, trimgalore_result_dir, bedgraph_cpg_dir):
+    """
+    Function that creates two reports summarising the metrics of all samples:
+    *Per_lane_stats.txt summarises information of the analysis for each pair of fastq files used Column names (2 fastq files per Lane)
+     Column names: run_name, lane, usable_reads, unpaired_reads, val_reads (no. of trimgalore passed paired reads), pe_pairs_analysed,
+     se_pairs_aligned, se1_reads_analysed, se2_reads_aligned, paired-end mapping efficiency. se1 mapping efficiency, se2 mapping efficiency,
+     total_mapping efficiency, qc1, qc2, qc3
+     Metrics of the per_lane_Stats are merged to create total metrics for all the samples of the analysis (and not specific lanes)
+    *Per_sample_stats.txt summarises information for all the samples in the analysis (in our analysis: 8 fastq files as input - 4 sequencing lanes - 1 sample)
+     Column names: run_name, sample_name, qc1, qc2, qc3, usable_reads, mapping_efficiency, identified_cpgs and location of cpgs
+    :param unique_sample_names: List (Required). List of unique names of the samples of the analysis.
+    :param main_result_dir: String (Required). Full path of the main result directory of the analysis. Should always finish with an '/'.
+    :param sorted_dir: String (Required). Full path of the directory where the bam files are located. Should always finish with an '/'.
+    :param aligned_pe_dir: Directory where the alignment output will be stored. Should always finish with an '/'.
+    :param aligned_se_dir: Directory where the alignment output will be stored. Should always finish with an '/'.
+    :param trimgalore_result_dir: String (Required). Full path of trimming result directory. Should always finish with an '/'.
+    :return: The function will save the generated reports in the main result directory.
+    """
     sheaders = [['run', 'sample', 'gc1', 'qc2', 'qc3', 'usable_reads', 'total_mapping_eff', 'cpgs_identified',
                  'cpg_report_location']]
     with open(main_result_dir + 'Per_sample_stats.txt', "a+", newline='') as fp:

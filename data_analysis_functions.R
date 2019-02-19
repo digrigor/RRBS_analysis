@@ -58,7 +58,7 @@ get_final_diff_matrix <- function(mydiffs=list()){
         ps_and_es[[i]] = cbind(mydiffs[[i]]$pvalue, mydiffs[[i]]$qvalue)
     }
     ps_and_es_matrix = do.call(cbind, ps_and_es)
-    conts = cases = means_cont = means_case = medians_cont = medians_case = meansdiff = mediansdiff = wcoxs = perms = c()
+    conts = cases = means_cont = means_case = medians_cont = medians_case = meansdiff = mediansdiff = age_meansdiff = wcoxs = age_mediansdiff = hpv_kstest = perms = c()
     z=1
     main_mydiff = getData(mydiffs[[1]])
     #length(conts) = length(cases) = length(means_cont) = length(means_case) = length(medians_cont) = length(medians_case) = length(meansdiff) = length(mediansdiff) = length(wcoxs) = length(perms) = nrow(main_mydiff)
@@ -67,6 +67,8 @@ get_final_diff_matrix <- function(mydiffs=list()){
         case_vals = as.numeric(na.omit(meth.min_5_per[i, c(which(treatment==1))]))
         current_cont = sum(!is.na(meth.min_5_per[i, c(which(treatment==0))]))
         current_case = sum(!is.na(meth.min_5_per[i, c(which(treatment==1))]))
+        age_conts = age_matrix[names(which(!is.na(meth.min_5_per[i, c(which(treatment==0))]))),]
+        age_cases = age_matrix[names(which(!is.na(meth.min_5_per[i, c(which(treatment==1))]))),]
         conts[z]=current_cont
         cases[z]=current_case
         means_cont[z]= mean(cont_vals)
@@ -75,6 +77,9 @@ get_final_diff_matrix <- function(mydiffs=list()){
         medians_case[z] = median(case_vals)
         meansdiff[z] = means_case[z] - means_cont[z]
         mediansdiff[z] = medians_case[z] - medians_cont[z]
+        age_meansdiff[z] = mean(age_cases)-mean(age_conts)
+        age_mediansdiff[z] = median(age_cases)-median(age_conts)
+        hpv_kstest[z] = KLD(table(hpv_matrix[names(which(!is.na(meth.min_5_per[i, c(which(treatment==1))]))),]), table(hpv_matrix[names(which(!is.na(meth.min_5_per[i, c(which(treatment==0))]))),]))$sum.KLD.py.px
         wcoxs[z] = wilcox.test(cont_vals, case_vals)$p.value
         vals = c(cont_vals, case_vals)
         treats = as.factor(c(rep(0, length(cont_vals)), rep(1, length(case_vals))))
@@ -84,7 +89,7 @@ get_final_diff_matrix <- function(mydiffs=list()){
         if(z%%100000==0){print(z)}
     }
         wcoxs = ifelse(is.nan(wcoxs), 1, wcoxs)
-        main_diff = cbind(main_mydiff[,c(1,2,3,4,7)], meansdiff, mediansdiff, conts, cases, means_cont, means_case, ps_and_es_matrix, wcoxs)
+        main_diff = cbind(main_mydiff[,c(1,2,3,4,7)], meansdiff, mediansdiff, conts, cases, means_cont, means_case, medians_cont, medians_case, ps_and_es_matrix, wcoxs, age_meansdiff, age_mediansdiff, hpv_kstest)
         return(main_diff)
         }
 
@@ -94,24 +99,28 @@ tablez <- tablez[order(tablez[,col_number]),]
 rank <- 1:nrow(tablez)
 return(rank)
 }
-regions_from_cpgs = function(maindiff_df, dmr_table, size, sample_lim, pval, eff_size){
+regions_from_cpgs = function(maindiff_df, dmr_table, filtered_myobj, size, sample_lim, pval_col, eff_col, pval, eff_size){
     #diff_df = topdiff
     dmrs = dmr_table
     dmrs = dmrs[,c(1,2,3)]
     dmrs$strand='*'
     dmrs$cpg_ig = dmrs$id = paste0(dmrs$V1, dmrs$V2, dmrs$V3)
-    colnames(dmrs) = c('chr', 'start', 'end', 'strand', 'id', 'cpg_id')
-    diff_df = subset(maindiff_df, cases>=sample_lim & conts>=sample_lim & wcox_pvalue<pval & abs(meansdiff)>=eff_size)
-    diff_win_df = data.frame(chr=diff_df$chr, start=diff_df$start-(size/2), end=diff_df$start+(size/2), strand=diff_df$strand, cpg_id=paste0(diff_df$chr, diff_df$start))
+    dmrs$type = 'dmr'
+    colnames(dmrs) = c('chr', 'start', 'end', 'strand', 'id', 'cpg_id', 'type')
+    diff_df = subset(maindiff_df, cases>=sample_lim & conts>=sample_lim & maindiff_df[,pval_col]<pval & abs(maindiff_df[,eff_col])>=eff_size)
+    print(nrow(diff_df))
+    diff_win_df = data.frame(chr=diff_df$chr, start=diff_df$start-(size/2), end=diff_df$start+(size/2), strand=diff_df$strand, cpg_id=paste0(diff_df$chr, diff_df$start, diff_df$end))
     diff_win_df$id=paste0(diff_win_df$chr, diff_win_df$start, diff_win_df$end)
+    diff_win_df$type = 'cpg'
     diff_win_df = rbind(diff_win_df, dmrs)
-    diff_win_gr <- makeGRangesFromDataFrame(diff_win_df, keep.extra.columns = TRUE)
+    diff_win_gr <<- makeGRangesFromDataFrame(diff_win_df, keep.extra.columns = TRUE)
     red_diff_win_gr <- reduce(diff_win_gr, ignore.strand=TRUE)
     red_diff_win_gr_df = as.data.frame(red_diff_win_gr)
     red_diff_win_gr_df$id = paste0(red_diff_win_gr_df$seqnames, red_diff_win_gr_df$start, red_diff_win_gr_df$end)
-    filtered.myobj_win <- regionCounts(filtered.myobj_5, red_diff_win_gr, strand.aware=FALSE)
+    filtered.myobj_win <- regionCounts(filtered_myobj, red_diff_win_gr, strand.aware=FALSE)
     meth_win <<- unite(filtered.myobj_win,min.per.group=20L)
     rownames(meth_win)=paste0(meth_win$chr, meth_win$start, meth_win$end)
+    print(length(paste0(meth_win$chr, meth_win$start, meth_win$end))==length(unique(paste0(meth_win$chr, meth_win$start, meth_win$end))))
     meth_win_per <<- percMethylation(meth_win)
     treatment = as.numeric(pheno_matrix[colnames(meth_win_per),]=='Case')
     win_conts = win_cases = win_means_cont = win_means_case = win_cont_ids = win_case_ids = win_medians_cont = win_medians_case = win_meansdiff = win_mediansdiff = win_wcoxs = win_perms = c()
@@ -138,7 +147,7 @@ regions_from_cpgs = function(maindiff_df, dmr_table, size, sample_lim, pval, eff
     return(fin_matrix)
 }
 
-check_pred_accuracy <- function(df, id, cluster_ids, phenotype, cv=10){
+check_pred_accuracy <- function(df, id, cluster_ids, phenotype, cv=10, dsplit=0.5){
    #print(id)
     cluster_meth = meth_win_per[df[cluster_ids,'id'],]
     cand_meth = meth_win_per[df[id,'id'],]
@@ -158,7 +167,7 @@ check_pred_accuracy <- function(df, id, cluster_ids, phenotype, cv=10){
     accuracy_vec = c()
     res_vec = list()
     for(i in c(1:cv)){
-    intrain = createDataPartition(y, p=0.7, list=FALSE)
+    intrain = createDataPartition(y, p=dsplit, list=FALSE)
     training = cand_dataset[intrain,]
     test = cand_dataset[-intrain,]
     model_1 = randomForest(x=training[,-ncol(training)],y=training[,ncol(training)], ntree=1000)
@@ -208,7 +217,6 @@ data_split_cv <- function(df, cluster_ids, pheno_matrix, cv, part, add_to_list){
 
 feature_selection = function(diff_regs, starting_point, shared_samples_limit, cand_shared_range){
     outlist = c()
-    print('########################################################')
     print(paste0('Starting with starting point: ', starting_point))
     print('Processing Starting point')
     #starting_point=c(5255:5259)
@@ -274,13 +282,13 @@ feature_selection = function(diff_regs, starting_point, shared_samples_limit, ca
 }
 #fin_report = feature_selection(diff_regs, starting_point=st, shared_samples_limit=170)
 
-# fin_list = list()
-#  for(i in c(1:nrow(all_combs))){
-#      print(paste0('Starting point: ',all_combs[i,1]))
-#      print('Minimum shared: 170')
-#      print(paste0('Close range: ', all_combs[i,2]))
-#      fin_list[[i]]=c(feature_selection(diff_regs, starting_point=as.character(all_combs[i,1]), shared_samples_limit=170, cand_shared_range=as.numeric(all_combs[i,2])))
-#  }
+fin_list = list()
+  for(i in c(1:nrow(all_combs))){
+      print(paste0('Starting point: ',all_combs[i,1]))
+      print(paste0('Minimum shared: ', all_combs[i,2]))
+      print(paste0('Close range: ', all_combs[i,3]))
+      fin_list[[i]]=c(feature_selection(diff_regs, starting_point=as.character(all_combs[i,1]), shared_samples_limit=as.numeric(all_combs[i,2]), cand_shared_range=as.numeric(all_combs[i,3])))
+  }
 
 evaluate_clusters <- function(final_list, meth_win_per, pheno_matrix, age_matrix){
     fin = data.frame(matrix(unlist(lapply(final_list, function(x) x[-c(1,2)])), ncol=4, byrow=TRUE), stringsAsFactors=FALSE)
@@ -669,3 +677,68 @@ check_raw_data <- function(lab_nos=as.character(globalmaster$lab_no), paths=glob
     names(raw_meths) = lab_nos
     return(rbind(raw_meths, meth.min_5_per[paste0(chr,start),names(raw_meths)]))
 }
+
+create_bed_for_combp <- function(df, col_for_p, col_for_eff, eff_limit, path_name){
+    bedp <- df[,c(1,2,3,col_for_p, col_for_eff)]
+    colnames(bedp) <- c('chrom', 'start', 'end', 'pvalue', 't')
+    bedp$end = bedp$start+1
+    newp = ifelse(bedp$t<eff_limit, 1, bedp$pvalue)
+    bedp$pvalue <- newp
+    write.table(bedp, path_name, sep='\t', row.names=FALSE, quote=FALSE)
+    return(bedp)
+}
+
+draw_cpgs = function(mdiff, as.score='median', gr, cols=c("chr","start","end","strand","mediansdiff","meansdiff","wcoxs")){
+    epb = subset(mdiff, start %in% c(as.numeric(gr[2]):as.numeric(gr[3])) & chr==gr[1])
+    epb = epb[,cols]
+    epb_gr = makeGRangesFromDataFrame(data.frame(epb, stringsAsFactors=TRUE), keep.extra.columns=TRUE)
+    epb_gr$mediansdiff = as.numeric(as.character(epb_gr$mediansdiff))
+    epb_gr$meansdiff = as.numeric(as.character(epb_gr$meansdiff))
+    epb_gr$color = 'gray'
+    if(as.score=='median'){
+    try(epb_gr[as.numeric(as.character(epb_gr$wcoxs))>0.05 & epb_gr$mediansdiff>0,]$color <- '#e6ffe6', silent=TRUE)
+    try(epb_gr[as.numeric(as.character(epb_gr$wcoxs))<0.05 & epb_gr$mediansdiff>0,]$color <- '#269900', silent=TRUE)
+    try(epb_gr[as.numeric(as.character(epb_gr$wcoxs))>0.05 & epb_gr$mediansdiff<0,]$color <- '#ffe6e6', silent=TRUE)
+    try(epb_gr[as.numeric(as.character(epb_gr$wcoxs))<0.05 & epb_gr$mediansdiff<0,]$color <- '#ff0000', silent=TRUE)
+    epb_gr$score = abs(epb_gr$mediansdiff)
+    }
+    if(as.score=='mean'){
+    try(epb_gr[as.numeric(as.character(epb_gr$wcoxs))>0.05 & epb_gr$meansdiff>0,]$color <- '#e6ffe6', silent=TRUE)
+    try(epb_gr[as.numeric(as.character(epb_gr$wcoxs))<0.05 & epb_gr$meansdiff>0,]$color <- '#269900', silent=TRUE)
+    try(epb_gr[as.numeric(as.character(epb_gr$wcoxs))>0.05 & epb_gr$meansdiff<0,]$color <- '#ffe6e6', silent=TRUE)
+    try(epb_gr[as.numeric(as.character(epb_gr$wcoxs))<0.05 & epb_gr$meansdiff<0,]$color <- '#ff0000', silent=TRUE)
+    epb_gr$score = abs(epb_gr$meansdiff)
+    }
+    trs = geneModelFromTxdb(TxDb.Hsapiens.UCSC.hg19.knownGene, org.Hs.eg.db, chrom=gr[1], start=as.numeric(gr[2]), end=as.numeric(gr[3]), strand=gr[4])
+    summ_to_transcripts = data.frame(matrix(unlist(lapply(trs, function(y) lapply(unique(y$dat$feature),
+                          function(x) c(levels(seqnames(y$dat[y$dat$feature==x,]))[1], start(y$dat[y$dat$feature==x,])[1],
+                          tail(end(y$dat[y$dat$feature==x,]),n=1), y$dat[y$dat$feature==x,]$feature[1],
+                          y$dat[y$dat$feature==x,]$transcript[1])))), ncol=5, byrow=TRUE), stringsAsFactors=FALSE)
+    colnames(summ_to_transcripts) = c('seqnames','start','end','feature','transcript')
+    summ_to_transcripts2 = data.frame(seqnames=summ_to_transcripts$seqnames, start=apply(summ_to_transcripts[, 2:3], 1, min),
+                           end=apply(summ_to_transcripts[, 2:3], 1, max), feature=summ_to_transcripts$feature,
+                           transcript=summ_to_transcripts$transcript)
+    summ_to_transcripts_gr = makeGRangesFromDataFrame(summ_to_transcripts2, keep.extra.columns=TRUE)
+    flevs = c('CDS','utr3','utr5','ncRNA')
+    feats = factor(summ_to_transcripts_gr$feature, levels=flevs)
+    summ_to_transcripts_gr$featureLayerID = summ_to_transcripts_gr$transcript
+    summ_to_transcripts_gr$height = unit(12, "points")
+    cols = c("#51C6E6", "#FF8833", "#DFA32D", "darkgray")
+    summ_to_transcripts_gr$fill = cols[feats]
+    names(summ_to_transcripts_gr) = summ_to_transcripts_gr$feature
+    return(list(summ_to_transcripts_gr, epb_gr))
+}
+
+case_vs_control_box <- function(methper, rows, parfrow){
+    par(mfrow=parfrow, cex.lab=5)
+    for(row in rows){
+        cases = as.numeric(na.omit(methper[row, c(which(treatment==1))]))
+        conts = as.numeric(na.omit(methper[row, c(which(treatment==0))]))
+        ncases = length(cases)
+        nconts = length(conts)
+        labcon = paste0('Controls', '(N=', nconts, ')')
+        labcas = paste0('Cases', '(N=', ncases, ')')
+        boxplot(conts, cases, col=c("#3cba54", "orange"), names=c(labcon, labcas), cex.names=5)
+    }
+}
+
