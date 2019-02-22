@@ -30,4 +30,4 @@ meth_ref = '/store/Reference/RRBS_methylated_control'
 
 unmeth_ref = '/store/Reference/RRBS_unmethylated_control'
 
-intesectbed_func = '/home/dio01/software/bedtools2/bin/intersectBed'
+intersectbed_func = '/home/dio01/software/bedtools2/bin/intersectBed'

@@ -385,9 +385,9 @@ def get_mExtraction(bismark_methCall_func, samtools_dir, sorted_dir, out_dir, bo
 def get_conversion_efficiency_report(cpg_dir, uniques, intersectbed_func, output):
     commands=[]
     for name in uniques:
-        meth_bed = get_files_with_suffix(bedgraph_cpg_dir, suffix1='meth_ctrl', inside_word=name, suffix2='bedGraph.gz')[0]
+        meth_bed = get_files_with_suffix(cpg_dir, suffix1='meth_ctrl', inside_word=name, suffix2='bedGraph.gz')[0]
         unmeth_bed = get_files_with_suffix(bedgraph_cpg_dir, suffix1='unmeth_ctrl', inside_word=name, suffix2='bedGraph.gz')[0]
-        comm = "p='"+name+"'; U=$(less "+unmeth_bed+" | awk '{methperc+=$4; allC++} END {print 100-methperc/allC}'); M=$("+ intersectbed_func + " -v -a " + meth_bed + " -b "+ bedgraph_cpg_dir + "RRBS_control_unmC.bed | awk '{methperc+=$4; allC++} END {print 100-methperc/allC}'); echo $p,$U,$M >> "+output
+        comm = "p='"+name+"'; U=$(less "+unmeth_bed+" | awk '{methperc+=$4; allC++} END {print 100-methperc/allC}'); M=$("+ intersectbed_func + " -v -a " + meth_bed + " -b "+ cpg_dir + "RRBS_control_unmC.bed | awk '{methperc+=$4; allC++} END {print 100-methperc/allC}'); echo $p,$U,$M >> "+output
         commands.append(comm)
     return(commands)
 

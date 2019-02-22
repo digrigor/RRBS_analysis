@@ -37,7 +37,7 @@ start = time.time()
 # parsing the command line arguments
 
 
-main_dir = '/store/LevelFour/ARTISTIC/METHYLATION/RRBS/dio01/Spike_in_Controls_analysis/Data/merged_samples_files/'
+main_dir = '/store/LevelFour/ARTISTIC/METHYLATION/RRBS/dio01/Spike_in_Controls_analysis/Data/'
 main_result_dir = '/store/LevelFour/ARTISTIC/METHYLATION/RRBS/dio01/Spike_in_Controls_analysis/Results/'
 #max_process = int(options.no_of_prcessor)
 
@@ -261,12 +261,14 @@ command_mextraction = get_mExtraction(bismark_methCall_func, samtools_dir, sorte
 parallel_command(command_mextraction, 15, methcal_dir, log)
 outlog+='Methylation Extraction: Done!\n'
 
-# ##Get the conversation efficiency rates
-# log = "conversation_efficiency_log.txt"
-# command_efficiency = get_conversion_efficiency_report(bedgraph_cpg_dir, unique_sample_names, intersectbed_func, bedgraph_cpg_dir+'conversion_efficiency.csv')
-# for com in command_efficiency:
-# 	bprocess.Popen(com, shell=True)
-# outlog+='Conversion efficiency: Calculated!\n'
+##Get the conversation efficiency rates
+log = "conversation_efficiency_log.txt"
+command_efficiency = get_conversion_efficiency_report(bedgraph_cpg_dir, unique_sample_names, intersectbed_func, bedgraph_cpg_dir+'conversion_efficiency.csv')
+for com in command_efficiency:
+	subprocess.Popen(com, shell=True)
+
+
+outlog+='Conversion efficiency: Calculated!\n'
 
 # ##Compress sorted bam files to cram files
 # log='bam2cram_log.txt'
