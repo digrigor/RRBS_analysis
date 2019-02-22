@@ -81,9 +81,7 @@ dists = c("correlation", "euclidean", "maximum", "manhattan", "canberra", "minko
 meths = c("ward", "single", "complete", "average", "mcquitty", "median","centroid")
 for(i in dists){
 for(j in meths){
-jpeg(paste0(i,j,'.jpg'))
 try(clusterSamples(meth.min_5[as.numeric(rownames(subset(main_diff, mnchi_qvalue < 0.05 & covered_controls>=13 & covered_cases >=13 & abs(mean_difference) > 18))),], dist=i, method=j, plot=TRUE))
-dev.off()
 }
 }
 
@@ -105,18 +103,18 @@ df_dm_annotated = data.frame(dm_annotated)
 tr_df_df_annotated <- transpose_annotation(df_dm_annotated)
 
 
-
-png(filename="../results/chi2_pvolcano_plot.png", units="in", width=11.5, height=8, res=600)
+main_diff = subset(maindiff, cases>=20 & conts>=20)
+#png(filename="../results/chi2_pvolcano_plot.png", units="in", width=11.5, height=8, res=600)
 par(mar=c(5.1,6,4.1,2.1))
-plot(main_diff$mean_difference, -log10(main_diff$mnchi_pvalue), xlab = "Mean Difference of Methylation Percentage", ylab = "-log10 pvalue", pch=19, cex = 0.5, cex.lab=2.5, cex.axis=2, xaxt = "n")
-axis(1, at=seq((-ceiling(abs(min(main_diff$mean_difference)))), ceiling(max(main_diff$mean_difference)), by=0.5), cex.axis=2)
-abline(v=-18, col="black", lty=2)
-abline(v=-25, col="black", lty=2)
-abline(v=18, col="black", lty=2)
-abline(v=25, col="black", lty=2)
+plot(main_diff$meansdiff, -log10(main_diff$wcox_pvalue), xlab = "Mean Difference of Methylation Percentage", ylab = "-log10 pvalue", pch=19, cex = 0.5, cex.lab=2.5, cex.axis=2, xaxt = "n")
+axis(1, at=seq((-ceiling(abs(min(main_diff$meansdiff)))), ceiling(max(main_diff$meansdiff)), by=0.5), cex.axis=2)
+abline(v=-15, col="black", lty=2)
+abline(v=-20, col="black", lty=2)
+abline(v=15, col="black", lty=2)
+abline(v=20, col="black", lty=2)
 abline(a=-log10(0.05), b=0, col="blue")
 #legend("bottomright", legend=c("logCPM2 > -5","logCPM2 < -5"), col = c("red", "black"), pch=19, cex=1.2)
-dev.off()
+#dev.off()
 
 boxplot_cpgs <- function(maindiff, cpg, gene){
     png(filename=paste0("../results/",gene,".png"), units="in", width=5, height=5, res=600)
